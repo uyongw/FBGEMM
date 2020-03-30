@@ -217,7 +217,16 @@ int run_benchmark(
           NUM_ITER,
           [&]() {
             if (flush_cache) {
-              cache_evict(fused_embedding_table);
+              if (use_32_bit_indices)
+                cache_evict_embedding_table(fused_embedding_table.data(),
+                                            indices_32.data(),
+                                            lengths_sum,
+                                            fused_embedding_dim);
+              else
+                cache_evict_embedding_table(fused_embedding_table.data(),
+                                            indices.data(),
+                                            lengths_sum,
+                                            fused_embedding_dim);
               cache_evict(indices);
               cache_evict(indices_32);
               cache_evict(lengths);

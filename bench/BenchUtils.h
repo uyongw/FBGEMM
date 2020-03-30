@@ -43,6 +43,21 @@ void cache_evict(const T& vec) {
   }
 }
 
+// Cache flush all the lines that ever been touched
+template <typename inType, typename IndexType>
+void cache_evict_embedding_table(const inType* input,
+                                 const IndexType* indices,
+                                 size_t index_length,
+                                 size_t fused_embedding_dim) {
+  const char* data = reinterpret_cast<const char*>(input);
+  constexpr int CACHE_LINE_SIZE = 64;
+  for (size_t i = 0; i < index_length; i++) {
+    for (size_t j = 0; j < fused_embedding_dim; j += CACHE_LINE_SIZE) {
+      _mm_clflush(&data[indices[i] * fused_embedding_dim + j]);
+    }
+  }
+}
+
 /**
  * Parse application command line arguments
  *
